@@ -44,7 +44,7 @@ export function PieChart({ rows, categoryKey, valueKey, colors, isDark }: PieCha
           {donut ? "Pie mode" : "Donut mode"}
         </button>
       </div>
-      <ResponsiveContainer width="100%" height={340}>
+      <ResponsiveContainer width="100%" height={440}>
         <RePieChart>
           <Pie
             data={data}

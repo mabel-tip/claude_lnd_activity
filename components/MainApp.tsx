@@ -50,7 +50,7 @@ export function MainApp() {
     <div className="min-h-screen bg-[var(--bg-primary)]">
       <Navbar />
 
-      <main className="px-4 py-6">
+      <main className="px-8 py-6">
         {!data ? (
           /* ── Upload screen ── */
           <div className="mx-auto max-w-2xl">

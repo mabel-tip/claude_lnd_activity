@@ -102,7 +102,7 @@ export function ChartWorkspace({ data, filteredRows, filters, onFilterChange, on
       </div>
 
       {/* Main layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr_260px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr_260px] items-start">
         {/* Left: column summary */}
         <div>
           <StatsSidebar columns={data.columns} />

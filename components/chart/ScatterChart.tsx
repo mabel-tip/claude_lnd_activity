@@ -21,7 +21,7 @@ export function ScatterChart({ rows, xKey, yKey, colors, isDark }: ScatterChartP
   const gridColor = isDark ? "#334155" : "#E9D5FF";
 
   return (
-    <ResponsiveContainer width="100%" height={360}>
+    <ResponsiveContainer width="100%" height={460}>
       <ReScatterChart margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
         <XAxis type="number" dataKey="x" name={xKey} tick={{ fill: axisColor, fontSize: 11 }} label={{ value: xKey, position: "insideBottom", offset: -4, fill: axisColor, fontSize: 11 }} />

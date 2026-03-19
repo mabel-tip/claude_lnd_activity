@@ -23,7 +23,7 @@ export function BarChart({ rows, xKey, yKeys, colors, isDark }: BarChartProps) {
   const gridColor = isDark ? "#334155" : "#E9D5FF";
 
   return (
-    <ResponsiveContainer width="100%" height={360}>
+    <ResponsiveContainer width="100%" height={460}>
       <ReBarChart data={data} margin={{ top: 8, right: 24, left: 0, bottom: 40 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
         <XAxis dataKey={xKey} tick={{ fill: axisColor, fontSize: 11 }} angle={-30} textAnchor="end" interval="preserveStartEnd" />
