@@ -1,9 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
-import type { ParsedCSV } from "@/types/csv";
+import type { ParsedCSV, DataRow } from "@/types/csv";
 import type { ChartType } from "@/types/chart";
-import { useFilters } from "@/hooks/useFilters";
-import { applyFilters } from "@/lib/filterEngine";
+import type { FilterState, ColumnFilter } from "@/types/filter";
 import { suggestChartTypes } from "@/lib/suggestions";
 import { LIGHT_COLORS, DARK_COLORS } from "@/lib/chartColors";
 import { ChartTypeSelector } from "./ChartTypeSelector";
@@ -14,16 +13,21 @@ import { PieChart } from "./PieChart";
 import { ScatterChart } from "./ScatterChart";
 import { ColumnSelector } from "@/components/controls/ColumnSelector";
 import { FilterPanel } from "@/components/controls/FilterPanel";
+import { StatsSidebar } from "@/components/data/StatsSidebar";
 
 const CHART_ID = "chart-export-target";
 
 interface ChartWorkspaceProps {
   data: ParsedCSV;
+  filteredRows: DataRow[];
+  filters: FilterState;
+  onFilterChange: (col: string, filter: ColumnFilter) => void;
+  onFilterReset: () => void;
   isDark: boolean;
   onReset: () => void;
 }
 
-export function ChartWorkspace({ data, isDark, onReset }: ChartWorkspaceProps) {
+export function ChartWorkspace({ data, filteredRows, filters, onFilterChange, onFilterReset, isDark, onReset }: ChartWorkspaceProps) {
   const suggestions = useMemo(() => suggestChartTypes(data.columns), [data.columns]);
   const [chartType, setChartType] = useState<ChartType>(suggestions[0] ?? "bar");
 
@@ -42,15 +46,10 @@ export function ChartWorkspace({ data, isDark, onReset }: ChartWorkspaceProps) {
   const [yKeys, setYKeys] = useState<string[]>([defaultY]);
   const [scatterYKey, setScatterYKey] = useState(numeric[1]?.name ?? defaultY);
 
-  const { filters, updateFilter, resetFilters } = useFilters(data.columns);
-
-  const filteredRows = useMemo(() => applyFilters(data.rows, filters), [data.rows, filters]);
-
   const colors = isDark ? DARK_COLORS : LIGHT_COLORS;
 
   const handleChartTypeChange = (type: ChartType) => {
     setChartType(type);
-    // Reset axes to sensible defaults for new chart type
     if (type === "scatter") {
       setXKey(numeric[0]?.name ?? data.headers[0]);
       setScatterYKey(numeric[1]?.name ?? numeric[0]?.name ?? data.headers[0]);
@@ -103,35 +102,38 @@ export function ChartWorkspace({ data, isDark, onReset }: ChartWorkspaceProps) {
       </div>
 
       {/* Main layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_280px]">
-        {/* Chart + column selector */}
-        <div className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5">
-            <div className="mb-4">
-              <ColumnSelector
-                columns={data.columns}
-                chartType={chartType}
-                xKey={xKey}
-                yKeys={yKeys}
-                scatterYKey={scatterYKey}
-                onXChange={setXKey}
-                onYChange={setYKeys}
-                onScatterYChange={setScatterYKey}
-              />
-            </div>
-            <div id={CHART_ID} className="bg-[var(--bg-surface)] rounded-xl p-2">
-              {renderChart()}
-            </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr_260px]">
+        {/* Left: column summary */}
+        <div>
+          <StatsSidebar columns={data.columns} />
+        </div>
+
+        {/* Centre: chart */}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-5">
+          <div className="mb-4">
+            <ColumnSelector
+              columns={data.columns}
+              chartType={chartType}
+              xKey={xKey}
+              yKeys={yKeys}
+              scatterYKey={scatterYKey}
+              onXChange={setXKey}
+              onYChange={setYKeys}
+              onScatterYChange={setScatterYKey}
+            />
+          </div>
+          <div id={CHART_ID} className="bg-[var(--bg-surface)] rounded-xl p-2">
+            {renderChart()}
           </div>
         </div>
 
-        {/* Right sidebar */}
-        <div className="flex flex-col gap-4">
+        {/* Right: filters */}
+        <div>
           <FilterPanel
             columns={data.columns}
             filters={filters}
-            onFilterChange={updateFilter}
-            onReset={resetFilters}
+            onFilterChange={onFilterChange}
+            onReset={onFilterReset}
           />
         </div>
       </div>

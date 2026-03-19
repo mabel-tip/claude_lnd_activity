@@ -9,7 +9,7 @@ export function StatsSidebar({ columns }: StatsSidebarProps) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-4">
       <h2 className="mb-3 text-sm font-semibold text-[var(--text-primary)]">Column Summary</h2>
-      <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
         {columns.map((col) => (
           <div key={col.name} className="rounded-xl border border-[var(--border)] bg-[var(--bg-surface-alt)] px-3 py-2.5">
             <div className="flex items-center justify-between gap-2 mb-1">

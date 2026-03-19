@@ -1,14 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useCSV } from "@/hooks/useCSV";
 import { useTheme } from "@/hooks/useTheme";
+import { useFilters } from "@/hooks/useFilters";
+import { applyFilters, applyColumnSearch } from "@/lib/filterEngine";
 import { Navbar } from "@/components/ui/Navbar";
 import { Toast } from "@/components/ui/Toast";
 import { Spinner } from "@/components/ui/Spinner";
 import { DropZone } from "@/components/upload/DropZone";
 import { PasteInput } from "@/components/upload/PasteInput";
 import { ChartWorkspace } from "@/components/chart/ChartWorkspace";
-import { StatsSidebar } from "@/components/data/StatsSidebar";
 import { DataPreview } from "@/components/data/DataPreview";
 
 type UploadTab = "upload" | "paste";
@@ -18,15 +19,27 @@ export function MainApp() {
   const { theme } = useTheme();
   const [toast, setToast] = useState<string | null>(null);
   const [uploadTab, setUploadTab] = useState<UploadTab>("upload");
-  const [showPreview, setShowPreview] = useState(false);
 
   const isDark = theme === "dark";
 
-  const handleError = (msg: string) => setToast(msg);
+  // Sidebar filters (range / categorical / date)
+  const { filters, updateFilter, resetFilters } = useFilters(data?.columns ?? []);
 
-  const handleFile = async (file: File) => {
-    await loadFile(file);
+  // Table column text search
+  const [columnSearch, setColumnSearch] = useState<Record<string, string>>({});
+
+  const handleSearchChange = (col: string, value: string) => {
+    setColumnSearch((prev) => ({ ...prev, [col]: value }));
   };
+
+  const handleSearchReset = () => setColumnSearch({});
+
+  // Single source of filtered rows shared by chart and table
+  const filteredRows = useMemo(() => {
+    if (!data) return [];
+    const sidebarFiltered = applyFilters(data.rows, filters);
+    return applyColumnSearch(sidebarFiltered, columnSearch);
+  }, [data, filters, columnSearch]);
 
   // Surface errors via toast
   if (error && !toast) {
@@ -37,7 +50,7 @@ export function MainApp() {
     <div className="min-h-screen bg-[var(--bg-primary)]">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="px-4 py-6">
         {!data ? (
           /* ── Upload screen ── */
           <div className="mx-auto max-w-2xl">
@@ -75,7 +88,7 @@ export function MainApp() {
                   <p className="text-sm text-[var(--text-secondary)]">Parsing CSV…</p>
                 </div>
               ) : uploadTab === "upload" ? (
-                <DropZone onFile={handleFile} loading={loading} />
+                <DropZone onFile={loadFile} loading={loading} />
               ) : (
                 <PasteInput onText={loadText} loading={loading} />
               )}
@@ -95,24 +108,26 @@ export function MainApp() {
         ) : (
           /* ── Workspace screen ── */
           <div className="flex flex-col gap-6">
-            <ChartWorkspace data={data} isDark={isDark} onReset={reset} />
+            <ChartWorkspace
+              data={data}
+              filteredRows={filteredRows}
+              filters={filters}
+              onFilterChange={updateFilter}
+              onFilterReset={resetFilters}
+              isDark={isDark}
+              onReset={reset}
+            />
 
-            {/* Stats + data preview */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-              <StatsSidebar columns={data.columns} />
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-[var(--text-primary)]">Data</h2>
-                  <button
-                    onClick={() => setShowPreview((p) => !p)}
-                    className="focus-ring text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                  >
-                    {showPreview ? "Hide preview" : "Show preview"}
-                  </button>
-                </div>
-                {showPreview && <DataPreview data={data} />}
-              </div>
-            </div>
+            {/* Data preview — full width */}
+            <DataPreview
+              rows={filteredRows}
+              headers={data.headers}
+              totalRows={data.rows.length}
+              skippedRows={data.skippedRows}
+              columnSearch={columnSearch}
+              onSearchChange={handleSearchChange}
+              onSearchReset={handleSearchReset}
+            />
           </div>
         )}
       </main>

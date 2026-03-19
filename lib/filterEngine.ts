@@ -27,3 +27,13 @@ export function applyFilters(rows: DataRow[], filters: FilterState): DataRow[] {
     activeFilters.every(([col, filter]) => passesFilter((row[col] ?? "").trim(), filter))
   );
 }
+
+export function applyColumnSearch(rows: DataRow[], search: Record<string, string>): DataRow[] {
+  const active = Object.entries(search).filter(([, v]) => v.trim() !== "");
+  if (active.length === 0) return rows;
+  return rows.filter((row) =>
+    active.every(([col, term]) =>
+      (row[col] ?? "").toLowerCase().includes(term.toLowerCase())
+    )
+  );
+}
